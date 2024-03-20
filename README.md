@@ -3,7 +3,7 @@
 
 ## How do I get BKC?
 - Download the client here: [Download](https://acesilentkill.github.io/BKC/)
-- Or manually checkout our [Releases](/releases/latest)
+- Or manually checkout our [Releases](https://github.com/AceSilentKill/BKC/releases)
 
 ## What is BKC?
 - BestKourClient is an Electron client for [Kour](https://kour.io)
