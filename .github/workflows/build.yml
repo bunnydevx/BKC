@@ -1,4 +1,4 @@
-name: Build BKC
+name: Build BestKourClient
 
 on: workflow_dispatch
  

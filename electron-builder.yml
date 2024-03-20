@@ -1,5 +1,5 @@
-appId: com.bestballs.BKC
-productName: 'BKC'
+appId: com.bestballs.BestKourClient
+productName: 'BestKourClient'
 icon: icon.png
 
 linux:

@@ -197,7 +197,7 @@ class SettingsWindow {
 delete require('electron').nativeImage.createThumbnailFromPath;
 
 if (!app.requestSingleInstanceLock()) {
-    console.log('[!] Other BKC processes already exist. If you can\'t see the window, please kill all BKC task(s) before trying again.');
+    console.log('[!] Other BestKourClient processes already exist. If you can\'t see the window, please kill all BestKourClient task(s) before trying again.');
     app.exit();
 }
 
@@ -285,7 +285,7 @@ const isNewerVersion = (a) => {
 let updateCheckResult = [hasRun, false, false, appVersion, ''];
 try {
     https.get('https://api.github.com/repos/AceSilentKill/BKC/releases/latest', {
-        headers: { 'User-Agent': 'Mozilla/5.0 BKC/' + app.getVersion(), },
+        headers: { 'User-Agent': 'Mozilla/5.0 BestKourClient/' + app.getVersion(), },
         timeout: 10000,
     }, (res) => {
         let data = '';
