@@ -1,17 +1,16 @@
 # BestKourClient
 
-### What is BKC?
+## What is BKC?
 - BestKourClient is an Electron client for [Kour](https://kour.io)
 
-### What features does BKC have?
+## What features does BKC have?
 - Uncapped FPS
 - Discord RPC
 - Ad Blocker
 - Custom Crosshair Images
 - Some QOL Hotkeys
 
-
-### What hotkeys does BKC have?
+## What hotkeys does BKC have?
 | Hotkey | Description |
 | ------ | ----------- |
 | F3 | Copy current game link to clipboard |
@@ -22,9 +21,9 @@
 | F11 | Fullscreen |
 | F12 | Open DevTools |
 
-### Is it safe?
+## Is it safe?
 - BestKourClient is 100% safe to use
 - The code you see in this repo is used to build our releases via GitHub Actions
 
-### Do you have a discord server?
+## Do you have a discord server?
 - Yes: [Official Discord Server](https://discord.gg/WxJGrgZnZT)
