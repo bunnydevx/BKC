@@ -1,0 +1,41 @@
+name: Build BKC Client
+
+on: workflow_dispatch
+ 
+jobs:
+  build:
+    runs-on: ${{matrix.os}}
+     
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+         
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+         
+      - name: Install g++-multilib
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt update && sudo apt install g++-multilib
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+         
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.13.0'
+           
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: MacOs Fixer
+        if: matrix.os == 'macos-latest'
+        run: npm i dmg-license
+         
+      - name: Build
+        run: npm run dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}

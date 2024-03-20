@@ -1,0 +1,39 @@
+appId: com.bestballs.BKC
+productName: 'BKC'
+icon: icon.png
+
+linux:
+  artifactName: ${name}-${os}-portable-${version}-${arch}.${ext}
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Game
+
+mac:
+  artifactName: ${name}-${os}-portable-${version}-${arch}.${ext}
+  target:
+    - target: default
+      arch:
+        - x64
+
+nsis:
+  artifactName: ${name}-${os}-setup-${version}-${arch}.${ext}
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+
+publish:
+  provider: github
+  repo: BKC
+  owner: AceSilentKill
+
+npmRebuild: false
+
+files:
+  - "**/*"
+  - "!.eslintrc"
+  - "!.github"
+  - "!BKC.code-workspace"
+  - "!.vscode"
+  - "!.gitignore"
