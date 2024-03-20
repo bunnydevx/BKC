@@ -1,4 +1,4 @@
-name: Build BKC Client
+name: Build BKC
 
 on: workflow_dispatch
  

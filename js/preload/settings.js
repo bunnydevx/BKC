@@ -4,7 +4,7 @@ const log = require('electron-log');
 const store = require('electron-store');
 const config = new store();
 
-const getVal = (key, defaultVal) => document.getElementById(key).checked = config.get(`settings.${key}`, defaultVal);
+const getVal = (key, defaultVal = false) => document.getElementById(key).checked = config.get(`settings.${key}`, defaultVal);
 
 let allowOFD = true;
 
@@ -14,12 +14,16 @@ window.openFileDialog = () => {
 
     ipcRenderer.invoke('openFileDialog', 'Crosshair Image Picker', [{ name: 'Raster Image', extensions: ['jpg', 'png', 'webp'] }])
     .then(val => {
-        const key = 'settings.crosshairPath';
+        if (!val) {
+            log.info(`[Settings] No File Selected, kept old value for 'settings.crosshairPath'`);
 
-        config.set(key, val);
-        ipcRenderer.send('updateSettingsCache', key, val);
+            return;
+        }
 
-        log.info(`[Settings] Set '${key}' to '${val}'`);
+        config.set('settings.crosshairPath', val);
+        ipcRenderer.send('updateSettingsCache', 'crosshairPath', val);
+
+        log.info(`[Settings] Set 'settings.crosshairPath' to '${val}'`);
     })
     .catch(err => {
         log.info('[Settings] Error:', err);
@@ -30,16 +34,15 @@ window.openFileDialog = () => {
 };
 
 window.handleSwitch = (element) => {
-    const key = `settings.${element.id}`;
-    const val = element.checked;
+    config.set(`settings.${element.id}`, element.checked);
+    ipcRenderer.send('updateSettingsCache', element.id, element.checked);
 
-    config.set(key, val);
-    ipcRenderer.send('updateSettingsCache', key, val);
-
-    log.info(`[Settings] Set '${key}' to '${val}'`);
+    log.info(`[Settings] Set 'settings.${element.id}' to '${element.checked}'`);
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+    getVal('inProcessGPU', (process.platform === 'win32'));
+    getVal('enableRPC');
     getVal('blockAds');
     getVal('enableCrosshair');
 });

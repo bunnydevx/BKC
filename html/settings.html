@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <head>
-    <title>[BKC Client] Settings</title>
+    <title>[BestKourClient] Settings</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
 
@@ -9,6 +9,7 @@
             color: white;
             font-size: 15px;
             font-family: comfortaa, 'Courier New', Courier, monospace;
+            user-select: none;
         }
 
         html,
@@ -134,8 +135,26 @@
             <div style="color: red; margin: 8px;">* = Restart</div>
             <div style="color: blue; margin: 8px;">* = Refresh</div>
         </div>
-        <div class="row">
-            <span>Block Ads<span style="color: red; font-size: 22px;">*</span></span>
+        <div class="row" title="Enabling this may fix issues with some clipping and recording software">
+            <span>inProcessGPU<span style="color: red; font-size: 22px;">*</span></span>
+            <div class="cb22">
+                <label class="switch" for="inProcessGPU">
+                    <input type="checkbox" id="inProcessGPU" onchange="handleSwitch(this)" />
+                    <div class="slider round"></div>
+                </label>
+            </div>
+        </div>
+        <div class="row" title="Shows you playing BKC on through Discord RPC">
+            <span>Discord RPC<span style="color: red; font-size: 22px;">*</span></span>
+            <div class="cb22">
+                <label class="switch" for="enableRPC">
+                    <input type="checkbox" id="enableRPC" onchange="handleSwitch(this)" />
+                    <div class="slider round"></div>
+                </label>
+            </div>
+        </div>
+        <div class="row" title="Enabling this will block ads">
+            <span>Block Ads<span style="color: blue; font-size: 22px;">*</span></span>
             <div class="cb22">
                 <label class="switch" for="blockAds">
                     <input type="checkbox" id="blockAds" onchange="handleSwitch(this)" />
@@ -143,8 +162,8 @@
                 </label>
             </div>
         </div>
-        <div class="row">
-            <span id="22">Custom Crosshair<span style="color: blue; font-size: 22px;">*</span></span>
+        <div class="row" title="Enabling this will show a custom crosshair image">
+            <span id="22">Custom Crosshair</span>
             <div class="cb22">
                 <label class="switch" for="enableCrosshair">
                     <input type="checkbox" id="enableCrosshair" onchange="handleSwitch(this)" />
@@ -152,8 +171,8 @@
                 </label>
             </div>
         </div>
-        <div class="row">
-            <span id="22">Crosshair Image<span style="color: blue; font-size: 22px;">*</span></span>
+        <div class="row" title="Select the image you wish to display for your custom crosshair">
+            <span id="22">Crosshair Image</span>
             <div class="btn" onclick="openFileDialog()">Open File</div>
         </div>
     </div>

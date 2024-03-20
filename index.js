@@ -1,5 +1,6 @@
 require('v8-compile-cache');
-const { BrowserWindow, app, dialog, ipcMain, protocol } = require('electron');
+const { BrowserWindow, app, dialog, ipcMain, protocol, shell, clipboard } = require('electron');
+const https = require('https');
 const path = require('path');
 const localShortcut = require('electron-localshortcut');
 const log = require('electron-log');
@@ -7,39 +8,53 @@ const store = require('electron-store');
 const config = new store();
 
 let settingsWindow, gameWindow, settingsCache = config.get('settings', {
+    inProcessGPU: (process.platform === 'win32'),
+    enableRPC: true,
     blockAds: false,
     enableCrosshair: false,
     crosshairPath: '',
 });
 
-class BigBlackCock {
+if (settingsCache.enableRPC) new (require('./js/utils/rpcHandler'))();
+
+const hasRun = config.get('hasRun', false);
+if (!hasRun) config.set('hasRun', true);
+
+class GameWindow {
     constructor() {
-        const cock = new BrowserWindow({
+        const win = new BrowserWindow({
             width: config.get('window.width', 1500),
             height: config.get('window.height', 1000),
             x: config.get('window.x'),
             y: config.get('window.y'),
             show: false,
-            title: '[BKC Client] Kour',
+            title: '[BestKourClient] Kour',
             webPreferences: {
                 contextIsolation: false,
-                preload: path.join(__dirname, 'js', 'preload', 'game.js'),
+                preload: path.join(__dirname, 'js/preload/game.js'),
                 devTools: true,
             },
         });
 
-        cock.removeMenu();
-        cock.setBackgroundColor('#2f2f2f');
+        win.removeMenu();
+        win.setBackgroundColor('#2f2f2f');
 
-        if (config.get('window.maximized', false)) cock.maximize();
-        if (config.get('window.fullscreen', false)) cock.setFullScreen(true);
+        if (config.get('window.maximized', false)) win.maximize();
+        if (config.get('window.fullscreen', false)) win.setFullScreen(true);
 
-        cock.once('ready-to-show', () => { cock.show(); });
-        cock.on('page-title-updated', (e) => { e.preventDefault(); });
+        win.once('ready-to-show', () => { win.show(); });
+        win.on('page-title-updated', (e) => { e.preventDefault(); });
+        win.webContents.on('new-window', (e, url) => {
+            e.preventDefault();
+            shell.openExternal(url);
+        });
 
         [
             ['Esc', () => {
-                cock.webContents.send('ESC');
+                win.webContents.send('ESC');
+            }],
+            ['F3', () => {
+                clipboard.writeText(win.webContents.getURL());
             }],
             ['F4', () => {
                 let txt = clipboard.readText();
@@ -51,53 +66,46 @@ class BigBlackCock {
                     hostname = '';
                 }
                 if (hostname === 'kour.io') {
-                    cock.loadURL(txt);
+                    win.loadURL(txt);
                 } else {
-                    txt = 'https://kour.io#' + txt;
-                    cock.loadURL(txt);
-                    log.info(`[Join Hotkey] Attempted to join '${txt}'`)
+                    txt = 'https://kour.io/' + (txt.startsWith('#')) ? txt : '#' + txt;
+                    win.loadURL(txt);
+                    log.info(`[Join Hotkey] Attempting to join '${txt}'`)
                 }
             }],
             ['F5', () => {
-                cock.reload();
+                win.reload();
             }],
             ['F6', () => {
-                cock.loadURL('https://kour.io');
-            }],
-            ['F7', () => {
-                clipboard.writeText(cock.webContents.getURL());
+                win.loadURL('https://kour.io');
             }],
             ['F8', () => {
-                if (!settingsWindow?.focus) settingsWindow = new MediumBlackCock();
+                if (!settingsWindow?.focus) settingsWindow = new SettingsWindow();
                 settingsWindow.focus();
             }],
             ['F11', () => {
-                const isFullScreen = cock.isFullScreen();
+                const isFullScreen = win.isFullScreen();
                 config.set('window.fullscreen', !isFullScreen);
-                cock.setFullScreen(!isFullScreen);
+                win.setFullScreen(!isFullScreen);
             }],
             [
                 ['CommandOrControl+F1', 'F12', 'CommandOrControl+Shift+I'], () => {
-                    cock.webContents.openDevTools();
+                    win.webContents.openDevTools({ mode: 'detach' });
                 }
             ],
             ['Alt+F4', () => {
-                cock.close();
+                win.close();
             }],
         ].forEach((k) => {
             try {
-                localShortcut.register(cock, k[0], k[1]);
+                localShortcut.register(win, k[0], k[1]);
             } catch (e) {
                 log.info('[LocalShortcut] ERROR:', e);
             }
         });
 
-        cock.webContents.session.webRequest.onBeforeRequest((details, callback) => {
-            if (settingsCache.blockAds && details.url && (details.url.includes('poki.com') || details.url.includes('poki.io'))) {
-                callback({
-                    redirectURL: 'https://google.com',
-                });
-            } else if (settingsCache.enableCrosshair && details.url && details.url.includes('bkc.sexy')) {
+        win.webContents.session.webRequest.onBeforeRequest((details, callback) => {
+            if (settingsCache.enableCrosshair && details.url.includes(`https://bkc.sexy/`)) {
                 callback({
                     redirectURL: 'bkc://' + path.join(new URL(details.url).pathname),
                 });
@@ -106,15 +114,15 @@ class BigBlackCock {
             }
         });
 
-        cock.loadURL('https://kour.io');
+        win.loadURL('https://kour.io/');
 
-        cock.on('close', () => {
+        win.on('close', () => {
             if (settingsWindow && settingsWindow?.close !== undefined) settingsWindow.close();
 
-            const isMaximized = cock.isMaximized();
-            const isFullScreen = cock.isFullScreen();
-            const windowSize = cock.getSize();
-            const windowPosition = cock.getPosition();
+            const isMaximized = win.isMaximized();
+            const isFullScreen = win.isFullScreen();
+            const windowSize = win.getSize();
+            const windowPosition = win.getPosition();
 
             config.set('window.maximized', isMaximized);
             config.set('window.fullscreen', isFullScreen);
@@ -126,78 +134,78 @@ class BigBlackCock {
             }
         });
 
-        return cock;
+        return win;
     }
 };
 
-class MediumBlackCock {
+class SettingsWindow {
     constructor() {
-        const cock = new BrowserWindow({
+        const win = new BrowserWindow({
             width: 400,
-            height: 260,
+            height: 310,
             fullscreen: false,
             maximizable: false,
             resizable: false,
             alwaysOnTop: true,
-            x: config.get('window2.x'),
-            y: config.get('window2.y'),
             show: false,
-            title: '[BKC Client] Settings',
+            title: '[BestKourClient] Settings',
             webPreferences: {
                 contextIsolation: false,
-                preload: path.join(__dirname, 'js', 'preload', 'settings.js'),
+                preload: path.join(__dirname, 'js/preload/settings.js'),
                 devTools: false,
             },
         });
 
         [
             ['Esc', () => {
-                cock.webContents.send('ESC');
+                win.webContents.send('ESC');
             }],
             ['F5', () => {
-                cock.reload();
+                win.reload();
             }],
             ['Alt+F4', () => {
-                cock.close();
+                win.close();
             }],
         ].forEach((k) => {
             try {
-                localShortcut.register(cock, k[0], k[1]);
+                localShortcut.register(win, k[0], k[1]);
             } catch (e) {
                 log.info('[LocalShortcut] ERROR:', e);
             }
         });
 
-        cock.removeMenu();
-        cock.setBackgroundColor('#2f2f2f');
+        win.removeMenu();
+        win.setBackgroundColor('#2f2f2f');
 
-        cock.once('ready-to-show', () => { cock.show(); });
-        cock.on('page-title-updated', (e) => { e.preventDefault(); });
+        win.once('ready-to-show', () => { win.show(); });
+        win.on('page-title-updated', (e) => { e.preventDefault(); });
 
-        cock.loadURL(path.join(__dirname, 'html', 'settings.html'));
+        win.loadURL(path.join(__dirname, 'html/settings.html'));
 
-        cock.on('close', () => {
-            const windowPosition = cock.getPosition();
+        win.on('close', () => {
+            const windowPosition = win.getPosition();
             config.set('window2.x', windowPosition[0]);
             config.set('window2.y', windowPosition[1]);
             settingsWindow = null;
         });
 
-        return cock;
+        return win;
     }
 };
 
-// https://github.com/advisories/GHSA-mpjm-v997-c4h4
+// https://github.com/advisories/GHSA-mpjm-v997-c4h4 :D
 delete require('electron').nativeImage.createThumbnailFromPath;
 
-// Single Instance
 if (!app.requestSingleInstanceLock()) {
     console.log('[!] Other BKC processes already exist. If you can\'t see the window, please kill all BKC task(s) before trying again.');
     app.exit();
 }
 
-// Flags
+if (!['win32', 'darwin'].includes(process.platform)) app.commandLine.appendSwitch('no-sandbox');
+if (settingsCache.inProcessGPU) app.commandLine.appendSwitch('in-process-gpu');
+
 [
+    ['autoplay-policy', 'no-user-gesture-required'],
     ['disable-frame-rate-limit'],
     ['disable-gpu-vsync'],
     ['max-gum-fps', '9999'],
@@ -233,12 +241,14 @@ if (!app.requestSingleInstanceLock()) {
     ['disable-low-end-device-mode'],
     ['enable-accelerated-video-decode'],
     ['no-proxy-server'],
+    ['disable-dev-shm-usage'],
+    ['use-angle', 'default'],
 ].forEach(x => app.commandLine.appendSwitch(...x));
 
 ipcMain.handle('openFileDialog', (e, title = '', filtersArr = []) => {
     const result = dialog.showOpenDialogSync(null, {
         properties: ['openFile'],
-        title: '[BKC Client] ' + title,
+        title: '[BestKourClient] ' + title,
         defaultPath: '.',
         filters: filtersArr,
     });
@@ -247,13 +257,66 @@ ipcMain.handle('openFileDialog', (e, title = '', filtersArr = []) => {
 
 ipcMain.on('updateSettingsCache', (e, key, val) => {
     settingsCache[key] = val;
+    gameWindow.webContents.send('updateSettingsCache', key, val);
 });
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
+const appVersion = app.getVersion();
 app.whenReady().then(() => {
     protocol.registerFileProtocol('bkc', (request, callback) => callback(decodeURI(request.url.replace(/^bkc:\//, ''))));
-    gameWindow = new BigBlackCock();
-})
+    gameWindow = new GameWindow();
+});
+
+const isNewerVersion = (a) => {
+    const oV = appVersion.split('.');
+    const nV = a.split('.');
+    for (let i = 0; i < nV.length; i++) {
+        const a = ~~nV[i];
+        const b = ~~oV[i];
+        if (a > b) return true;
+        if (a < b) return false;
+    }
+    return false;
+};
+
+let updateCheckResult = [hasRun, false, false, appVersion, ''];
+try {
+    https.get('https://api.github.com/repos/AceSilentKill/BKC/releases/latest', {
+        headers: { 'User-Agent': 'Mozilla/5.0 BKC/' + app.getVersion(), },
+        timeout: 10000,
+    }, (res) => {
+        let data = '';
+        res.on('data', (chk) => { data += chk; });
+        res.on('end', () => {
+            const version = JSON.parse(data).name;
+            if (!version) {
+                updateCheckResult[0] = true;
+                log.warn('[Updater] Error: Invalid version info response...');
+                return;
+            }
+
+            if (isNewerVersion(version)) {
+                log.info(`[Updater] Update is available (${appVersion} -> ${version})`);
+                updateCheckResult[0] = true;
+                updateCheckResult[2] = version;
+            } else {
+                log.info(`[Updater] App is up-to-date :D`);
+                updateCheckResult[2] = version;
+            }
+        });
+    }).on('error', (e) => {
+        updateCheckResult[0] = true;
+        log.warn('[Updater]', e)
+    });
+} catch (e) {
+    updateCheckResult[0] = true;
+    log.warn('[Updater]', e);
+}
+
+ipcMain.handleOnce('getUpdaterMSG', () => {
+    ipcMain.handle('getUpdaterMSG', () => false);
+    return updateCheckResult;
+});
