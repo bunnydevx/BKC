@@ -4,10 +4,9 @@ const log = require('electron-log');
 const store = require('electron-store');
 const config = new store();
 
-const getVal = (key, defaultVal = false) => document.getElementById(key).checked = config.get(`settings.${key}`, defaultVal);
+const updateSettingsElement = (key, defaultVal = false) => document.getElementById(key).checked = config.get(`settings.${key}`, defaultVal);
 
 let allowOFD = true;
-
 window.openFileDialog = () => {
     if (!allowOFD) return;
     allowOFD = false;
@@ -40,11 +39,9 @@ window.handleSwitch = (element) => {
     log.info(`[Settings] Set 'settings.${element.id}' to '${element.checked}'`);
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-    getVal('inProcessGPU', (process.platform === 'win32'));
-    getVal('enableRPC', true);
-    getVal('blockAds');
-    getVal('enableCrosshair');
+document.addEventListener('DOMContentLoaded', () => {
+    updateSettingsElement('inProcessGPU', (process.platform === 'win32'));
+    updateSettingsElement('enableRPC', true);
+    updateSettingsElement('blockAds');
+    updateSettingsElement('enableCrosshair');
 });
-
-ipcRenderer.on('ESC', () => { document.exitPointerLock(); });

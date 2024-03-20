@@ -50,9 +50,6 @@ class GameWindow {
         });
 
         [
-            ['Esc', () => {
-                win.webContents.send('ESC');
-            }],
             ['F3', () => {
                 clipboard.writeText(win.webContents.getURL());
             }],
@@ -93,9 +90,6 @@ class GameWindow {
                     win.webContents.openDevTools({ mode: 'detach' });
                 }
             ],
-            ['Alt+F4', () => {
-                win.close();
-            }],
         ].forEach((k) => {
             try {
                 localShortcut.register(win, k[0], k[1]);
@@ -157,14 +151,8 @@ class SettingsWindow {
         });
 
         [
-            ['Esc', () => {
-                win.webContents.send('ESC');
-            }],
             ['F5', () => {
                 win.reload();
-            }],
-            ['Alt+F4', () => {
-                win.close();
             }],
         ].forEach((k) => {
             try {

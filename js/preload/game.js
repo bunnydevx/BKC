@@ -39,8 +39,6 @@ ipcRenderer.on('updateSettingsCache', (e, key, val) => {
     }
 });
 
-ipcRenderer.on('ESC', () => document.exitPointerLock());
-
 const initAdBlock = (addWarnings = false) => {
     if (!settingsCache.blockAds) return;
 
@@ -116,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 style: {
                     background: `linear-gradient(to right, #ff2100, #ba2121)`,
                 },
-                onClick: (updateAvailable) ? () => { window.open('https://github.com/AceSilentKill/BCK/releases/latest'); } : () => { },
+                onClick: (updateAvailable) ? () => { window.open('https://github.com/AceSilentKill/BKC/releases/latest'); } : () => { },
             }).showToast();
             return;
         }
@@ -132,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             style: {
                 background: `linear-gradient(to right, ${(updateAvailable) ? '#ff2100, #ba2121' : '#96c93d, #269400'})`,
             },
-            onClick: (updateAvailable) ? () => { window.open('https://github.com/AceSilentKill/BCK/releases/latest'); } : () => { },
+            onClick: (updateAvailable) ? () => { window.open('https://github.com/AceSilentKill/BKC/releases/latest'); } : () => { },
         }).showToast();
     });
 });
