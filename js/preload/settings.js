@@ -42,7 +42,7 @@ window.handleSwitch = (element) => {
 
 document.addEventListener("DOMContentLoaded", () => {
     getVal('inProcessGPU', (process.platform === 'win32'));
-    getVal('enableRPC');
+    getVal('enableRPC', true);
     getVal('blockAds');
     getVal('enableCrosshair');
 });
