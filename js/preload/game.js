@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 gravity: 'top',
                 position: 'left',
                 stopOnFocus: true,
-                onClick: () => { window.open('https://github.com/AceSilentKill/BCK/releases/latest') },
+                onClick: () => { window.open('https://discord.gg/WxJGrgZnZT') },
             }).showToast();
         }
 
