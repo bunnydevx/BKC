@@ -45,3 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSettingsElement('blockAds');
     updateSettingsElement('enableCrosshair');
 });
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' || event.keyCode === 27) {
+        document.exitPointerLock();
+    }
+});

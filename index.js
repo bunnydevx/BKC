@@ -17,8 +17,8 @@ let settingsWindow, gameWindow, settingsCache = config.get('settings', {
 
 if (settingsCache.enableRPC) new (require('./js/utils/rpcHandler'))();
 
-const hasRun = config.get('hasRun', false);
-if (!hasRun) config.set('hasRun', true);
+const firstTimeRunning = config.get('firstTimeRunning', true);
+if (firstTimeRunning) config.set('firstTimeRunning', false);
 
 class GameWindow {
     constructor() {
@@ -270,10 +270,10 @@ const isNewerVersion = (a) => {
     return false;
 };
 
-let updateCheckResult = [hasRun, false, false, appVersion, ''];
+let updateCheckResult = [firstTimeRunning, false, false, appVersion, '']; //[firstTimeRunning, updaterError, updateAvailable, currentVersion, newVersion]
 try {
     https.get('https://api.github.com/repos/AceSilentKill/BKC/releases/latest', {
-        headers: { 'User-Agent': 'Mozilla/5.0 BestKourClient/' + app.getVersion(), },
+        headers: { 'User-Agent': `Mozilla/5.0 BestKourClient/${appVersion}`, },
         timeout: 10000,
     }, (res) => {
         let data = '';
@@ -288,19 +288,19 @@ try {
 
             if (isNewerVersion(version)) {
                 log.info(`[Updater] Update is available (${appVersion} -> ${version})`);
-                updateCheckResult[0] = true;
-                updateCheckResult[2] = version;
+                updateCheckResult[2] = true;
+                updateCheckResult[4] = version;
             } else {
                 log.info(`[Updater] App is up-to-date :D`);
-                updateCheckResult[2] = version;
+                updateCheckResult[4] = version;
             }
         });
     }).on('error', (e) => {
-        updateCheckResult[0] = true;
+        updateCheckResult[1] = true;
         log.warn('[Updater]', e)
     });
 } catch (e) {
-    updateCheckResult[0] = true;
+    updateCheckResult[1] = true;
     log.warn('[Updater]', e);
 }
 

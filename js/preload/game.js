@@ -87,9 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ipcRenderer.invoke('getUpdaterMSG').then((arr) => {
         if (!arr) return;
-        const [hasRun, updaterError, updateAvailable, currentVersion, newVersion] = arr;
+        const [firstTimeRunning, updaterError, updateAvailable, currentVersion, newVersion] = arr;
 
-        if (!hasRun) {
+        if (firstTimeRunning) {
             Toastify({
                 text: 'Welcome To BestKourClient :D\nClick this message to join our Discord',
                 duration: 12000,
@@ -133,4 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
             onClick: (updateAvailable) ? () => { window.open('https://github.com/AceSilentKill/BKC/releases/latest'); } : () => { },
         }).showToast();
     });
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' || event.keyCode === 27) {
+        document.exitPointerLock();
+    }
 });
